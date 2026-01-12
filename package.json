@@ -20,6 +20,7 @@
     "passport": "^0.6.0",
     "passport-local": "^1.0.0",
     "puppeteer": "^24.34.0",
+    "redis": "^5.10.0",
     "reflect-metadata": "^0.1.14",
     "socket.io": "^4.8.3",
     "socket.io-client": "^4.8.3",

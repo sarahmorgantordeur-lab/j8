@@ -1,0 +1,6 @@
+name,price,stock,description,isArchived
+Product 1,10.50,100,Description 1,false
+Product 2,20.00,-5,Description 2 (Stock should be 0),false
+Product 3,invalid_price,50,Description 3 (Should be skipped),false
+Product 4,30.00,20,Description 4,true
+Product 5, 40.00 , 10 , Description 5 (Trim check) , false 

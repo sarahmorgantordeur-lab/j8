@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; max-width: 800px; margin: 0 auto; padding: 20px; background-color: #f0f2f5; }
+        .container { display: grid; grid-gap: 20px; }
+        .card { background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+        h2 { margin-top: 0; color: #333; border-bottom: 2px solid #eee; padding-bottom: 10px; }
+        
+        /* Styles Formulaires */
+        .form-group { margin-bottom: 15px; }
+        input { width: 100%; padding: 8px; margin-top: 5px; box-sizing: border-box; border: 1px solid #ddd; border-radius: 4px; }
+        button { background-color: #007bff; color: white; border: none; padding: 10px 15px; border-radius: 4px; cursor: pointer; font-weight: bold; }
+        button:hover { background-color: #0056b3; }
+        button.secondary { background-color: #6c757d; }
+        button.danger { background-color: #dc3545; }
+
+        /* Styles Chat */
+        #chat-interface { display: none; } /* Caché par défaut */
+        #messages-list { height: 300px; overflow-y: auto; border: 1px solid #ddd; padding: 10px; background: #fafafa; margin-bottom: 10px; border-radius: 4px; }
+        .message { margin-bottom: 8px; padding: 8px; border-radius: 15px; max-width: 80%; }
+        .message.me { background-color: #dcf8c6; margin-left: auto; text-align: right; }
+        .message.other { background-color: #e9ecef; }
+        .meta { font-size: 0.75em; color: #666; margin-top: 4px; }
+
+        /* Styles Logs */
+        #logs-area { background: #333; color: #0f0; font-family: monospace; padding: 10px; height: 150px; overflow-y: scroll; border-radius: 4px; font-size: 12px; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>🛠️ Testeur</h1>
+
+    <div id="auth-card" class="card">
+        <h2>1. Authentification </h2>
+        <div class="form-group">
+            <label>Username</label>
+            <input type="text" id="username" placeholder="ex: Alice">
+        </div>
+        <div class="form-group">
+            <label>Password</label>
+            <input type="password" id="password" placeholder="ex: 123456">
+        </div>
+        <button onclick="handleAuth('/register')">📝 S'inscrire</button>
+        <button onclick="handleAuth('/login')">🔑 Se connecter</button>
+        <button class="secondary" onclick="connectGuest()">👻 Mode Invité (Guest)</button>
+    </div>
+
+    <div id="chat-interface" class="card">
+        <div style="display: flex; justify-content: space-between; align-items: center;">
+            <h2>2. Live Chat (Socket.IO + TypeORM)</h2>
+            <button class="danger" onclick="logout()">Déconnexion</button>
+        </div>
+        
+        <div id="status-bar" style="margin-bottom: 10px; padding: 5px; background: #eee; border-radius: 4px;">
+            Statut : <span id="connection-status">🔴 Déconnecté</span>
+        </div>
+
+        <div id="messages-list"></div>
+
+        <div style="display: flex; gap: 10px;">
+            <input type="text" id="message-input" placeholder="Votre message..." onkeypress="if(event.key === 'Enter') sendMessage()">
+            <button onclick="sendMessage()">Envoyer 🚀</button>
+        </div>
+        <div style="margin-top:10px;">
+            <button class="secondary" onclick="sendPing()">Test Ping (Check Console)</button>
+        </div>
+    </div>
+
+    <div class="card">
+        <h2>3. Logs Système</h2>
+        <div id="logs-area"></div>
+    </div>
+</div>
+
+<script>
+    // Configuration
+    const API_URL = 'http://localhost:3000';
+    let socket = null;
+    let currentUser = null;
+
+    // --- FONCTIONS UTILITAIRES ---
+    
+    function log(message, type = 'info') {
+        const logs = document.getElementById('logs-area');
+        const line = document.createElement('div');
+        const time = new Date().toLocaleTimeString();
+        line.textContent = `[${time}] ${message}`;
+        if (type === 'error') line.style.color = '#ff4444';
+        if (type === 'success') line.style.color = '#00C851';
+        logs.appendChild(line);
+        logs.scrollTop = logs.scrollHeight;
+    }
+
+    function updateStatus(status, color) {
+        const el = document.getElementById('connection-status');
+        el.textContent = status;
+        el.style.color = color;
+    }
+
+    // --- PARTIE 1 : AUTHENTIFICATION (HTTP) ---
+
+    async function handleAuth(endpoint) {
+        const username = document.getElementById('username').value;
+        const password = document.getElementById('password').value;
+
+        if (!username || !password) return alert('Remplissez les champs !');
+
+        try {
+            log(`Tentative ${endpoint}...`);
+            const response = await fetch(API_URL + endpoint, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ username, password })
+            });
+
+            const data = await response.json();
+
+            if (response.ok) {
+                log(`Succès ${endpoint} : ${data.message}`, 'success');
+                if (endpoint === '/login') {
+                    currentUser = username;
+                    initSocket(); // Lancement du socket seulement après login réussi
+                }
+            } else {
+                log(`Erreur : ${data.message}`, 'error');
+            }
+        } catch (e) {
+            log(`Erreur réseau : ${e.message}`, 'error');
+        }
+    }
+
+    // --- PARTIE 2 : SOCKET.IO ---
+
+    function connectGuest() {
+        currentUser = "Guest";
+        log("Connexion en mode Guest...", 'info');
+        initSocket();
+    }
+
+    function initSocket() {
+        if (socket && socket.connected) return;
+
+        socket = io(API_URL, {
+            withCredentials: true
+        });
+
+        socket.on('connect', () => {
+            log(`✅ Socket connecté ! ID: ${socket.id}`, 'success');
+            updateStatus('🟢 Connecté', 'green');
+            
+            document.getElementById('auth-card').style.display = 'none';
+            document.getElementById('chat-interface').style.display = 'block';
+        });
+
+        socket.on('connect_error', (err) => {
+            log(`❌ Erreur connexion Socket : ${err.message}`, 'error');
+            updateStatus('🔴 Erreur Auth', 'red');
+            if (err.message === "Unauthorized") {
+                alert("Erreur : Vous n'êtes pas connecté (Session invalide)");
+            }
+        });
+
+        socket.on('disconnect', () => {
+            log('🔌 Déconnecté du serveur', 'error');
+            updateStatus('🔴 Déconnecté', 'red');
+        });
+
+        socket.on('new_message', (data) => {
+            displayMessage(data);
+        });
+
+        socket.on('my_pong', (data) => {
+            log(`🏓 Pong reçu : ${data.response}`, 'success');
+        });
+    }
+
+    // --- PARTIE 3 : CHAT & INTERACTION ---
+
+    function sendMessage() {
+        const input = document.getElementById('message-input');
+        const content = input.value;
+        
+        if (content.trim()) {
+            // Emission de l'événement vers le serveur
+            socket.emit('send_message', { content: content });
+            input.value = '';
+            log(`Envoi message : "${content}"`);
+        }
+    }
+
+    function sendPing() {
+        socket.emit('my_ping', { text: 'Ping Test' });
+        log('Envoi PING...');
+    }
+
+    function displayMessage(data) {
+        const list = document.getElementById('messages-list');
+        const div = document.createElement('div');
+        
+        const isMe = data.from === currentUser;
+        div.className = `message ${isMe ? 'me' : 'other'}`;
+        
+        // Formatage de la date (DB renvoie une string ISO)
+        const date = new Date(data.time).toLocaleTimeString();
+
+        div.innerHTML = `
+            <strong>${data.from}</strong> : ${data.content}
+            <div class="meta">${date}</div>
+        `;
+        
+        list.appendChild(div);
+        list.scrollTop = list.scrollHeight;
+    }
+
+    function logout() {
+        if (socket) socket.disconnect();
+        fetch(API_URL + '/logout', { method: 'POST' });
+        location.reload();
+    }
+
+</script>
+
+</body>
+</html>

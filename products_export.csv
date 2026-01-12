@@ -1,0 +1,17 @@
+id,name,price,stock,description,isArchived
+1,Product 1,10.5,100,Description 1,
+2,Product 2,20,0,Description 2 (Stock should be 0),
+3,Product 4,30,20,Description 4,1
+4,Product 5,40,10,Description 5 (Trim check),
+5,Product 1,10.5,100,Description 1,
+6,Product 2,20,0,Description 2 (Stock should be 0),
+7,Product 4,30,20,Description 4,1
+8,Product 5,40,10,Description 5 (Trim check),
+9,Product 1,10.5,100,Description 1,
+10,Product 2,20,0,Description 2 (Stock should be 0),
+11,Product 4,30,20,Description 4,1
+12,Product 5,40,10,Description 5 (Trim check),
+13,Product 1,10.5,100,Description 1,
+14,Product 2,20,0,Description 2 (Stock should be 0),
+15,Product 4,30,20,Description 4,1
+16,Product 5,40,10,Description 5 (Trim check),

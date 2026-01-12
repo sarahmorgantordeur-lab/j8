@@ -15,14 +15,6 @@ const { Worker } = require('worker_threads');
 // 2. Importez path pour résoudre le chemin absolu du fichier worker.
 const path = require('path');
 
-// Bonus : piscina 
-const Piscina = require('piscina');
-// Crée un pool de Workers limité à 4 threads simultanés
-const pool = new Piscina({
-  filename: path.resolve(__dirname, "../workers/worker.js"),
-  maxThreads: 4,
-});
-
 
 class HeavyComputationController {
   static async blockingTask(req, res) {
@@ -86,5 +78,26 @@ class HeavyComputationController {
 
   }
 }
+
+// Bonus : piscina 
+const Piscina = require('piscina');
+
+// Crée un pool de Workers limité à 4 threads simultanés
+const { parentPort, workerData } = require('worker_threads');
+
+// Piscina récupère les données via workerData et renvoie un résultat avec return
+module.exports = async function() {
+  const iterations = workerData.iterations || 5000000000;
+
+  // Simulation d'une tâche CPU-intensive
+  let count = 0;
+  for (let i = 0; i < iterations; i++) {
+    count++; // simple incrément pour simuler le calcul
+  }
+
+  // Retourne le résultat à Piscina
+  return { iterationsDone: count };
+};
+
 
 module.exports = HeavyComputationController;

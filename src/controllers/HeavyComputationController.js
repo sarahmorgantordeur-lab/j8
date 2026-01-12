@@ -9,12 +9,24 @@
     // ○ error : Le worker a planté.
     // ○ exit : Le worker s'est arrêté (utile pour le debug).
 
+
+// Nous allons simuler une tâche de "Backup" de base de données. Dans la réalité, ce serait une commande complexe. 
+// Ici, pour que ça marche sur tous les OS (Linux/Mac/Windows), nous allons simplement lister les fichiers du répertoire courant.
+
+// Instructions :
+// 1. Ouvrez src/controllers/HeavyComputationController.js.
+// 2. Importez { exec } depuis le module natif child_process.
+  // ○ Note : exec lance un shell complet, ce qui permet d'utiliser des pipes | et des jokers, mais attention aux failles de sécurité !
+// 3. Ajoutez la méthode backupDb(req, res).
+
 // 1. Importez la classe Worker depuis worker_threads.
 const { Worker } = require('worker_threads');
 
 // 2. Importez path pour résoudre le chemin absolu du fichier worker.
 const path = require('path');
 
+// 2. Importez { exec } depuis le module natif child_process.
+const { exec } = require('child_process');
 
 class HeavyComputationController {
   static async blockingTask(req, res) {
@@ -76,6 +88,46 @@ class HeavyComputationController {
       else console.log(`[${process.pid}] Worker terminé correctement`);
     });
 
+  }
+
+  static async backupDb(req, res) {
+    console.log(`[${process.pid}] Demande de backup reçue (Main Thread)`);
+    // TODO 1 : Définir la commande système à exécuter
+    // Sur Windows ('win32'), utilisez 'dir'. Sur Linux/Mac, utilisez 'ls -la'.
+    // Astuce : Utilisez `process.platform` pour vérifier l'OS.
+    const command = process.platform === 'win32' ? 'dir' : 'ls -la';
+
+    // TODO 2 : Lancer le processus enfant avec exec()
+    // La fonction prend 2 arguments : la commande et un callback (error, stdout, stderr)
+    exec(command, (error, stdout, stderr) => {
+
+      // TODO 3 : Gérer le cas où la commande plante (error existe)
+      // Renvoyez une erreur 500 au client avec le message.
+      if (error) {
+        console.error(`[${process.pid}] Erreur lors du backup :`, error.message);
+        return res.status(500).json({
+          status: 'error',
+          message: error.message
+        });
+      };
+
+      // TODO 4 : Vérifier s'il y a des sorties d'erreurs secondaires (stderr)
+      // Ce ne sont pas forcément des crashs, juste des logs d'avertissement du processus.
+      // Affichez-les simplement dans un console.warn.
+      if (stderr) {
+        console.warn(`[${process.pid}] stderr :`, stderr);
+      }
+      console.log(`[${process.pid}] Backup terminé avec succès`);
+
+      // TODO 5 : Renvoyer le succès au client
+      // Le corps de la réponse doit contenir 'stdout' (le texte affiché par la commande ls/dir)
+      res.json({
+        status: 'success',
+        message: 'Backup simulation executed',
+        parentPid: process.pid,
+        output: stdout
+      });
+    });
   }
 }
 

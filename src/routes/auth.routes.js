@@ -11,6 +11,9 @@ router.get('/profile', authController.getProfile);
 
 router.post('/logout', authController.logout);
 
-router.get
+router.get('/kill-me', (req, res) => {
+    res.send("Je vais mourir 😅");
+    process.exit(1);
+});
 
 module.exports = router;

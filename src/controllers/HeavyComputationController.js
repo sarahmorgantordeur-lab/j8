@@ -79,25 +79,25 @@ class HeavyComputationController {
   }
 }
 
-// Bonus : piscina 
-const Piscina = require('piscina');
+// // Bonus : piscina 
+// const Piscina = require('piscina');
 
-// Crée un pool de Workers limité à 4 threads simultanés
-const { parentPort, workerData } = require('worker_threads');
+// // Crée un pool de Workers limité à 4 threads simultanés
+// const { parentPort, workerData } = require('worker_threads');
 
-// Piscina récupère les données via workerData et renvoie un résultat avec return
-module.exports = async function() {
-  const iterations = workerData.iterations || 5000000000;
+// // Piscina récupère les données via workerData et renvoie un résultat avec return
+// module.exports = async function() {
+//   const iterations = workerData.iterations || 5000000000;
 
-  // Simulation d'une tâche CPU-intensive
-  let count = 0;
-  for (let i = 0; i < iterations; i++) {
-    count++; // simple incrément pour simuler le calcul
-  }
+//   // Simulation d'une tâche CPU-intensive
+//   let count = 0;
+//   for (let i = 0; i < iterations; i++) {
+//     count++; // simple incrément pour simuler le calcul
+//   }
 
-  // Retourne le résultat à Piscina
-  return { iterationsDone: count };
-};
+//   // Retourne le résultat à Piscina
+//   return { iterationsDone: count };
+// };
 
 
 module.exports = HeavyComputationController;

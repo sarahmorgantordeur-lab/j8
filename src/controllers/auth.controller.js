@@ -41,6 +41,7 @@ class AuthController {
             return res.status(401).json({ message: 'Non autorisé' });
         }
         res.json(req.user);
+        console.log(process.pid);
     }
 
     logout(req, res, next) {

@@ -43,7 +43,7 @@ class BaseController {
   async getById(req, res) {
     const { id } = req.params;
     // TODO: Récupérer l'item via le service
-    const item = await this.service.getById(id);
+    const item = await this.service.findById(id);
     // TODO: Gérer le cas où l'item n'existe pas (404)
     if (!item) {
         return res.status(404).json({ error: `Item with id ${id} not found` })

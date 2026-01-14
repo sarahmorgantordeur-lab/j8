@@ -9,12 +9,19 @@ services:
     environment:
       - REDIS_HOST=redis
       - REDIS_PORT=6379
+      - DB_TYPE=postgres
+      - DB_HOST=postgres
+      - DB_PORT=5432
+      - DB_USERNAME=user
+      - DB_PASSWORD=password
+      - DB_DATABASE=nodeapp
     depends_on:
       - redis
+      - postgres
     networks:
       - app-network
     volumes:
-      - .:/app
+      - .:/app:cached
       - /app/node_modules
 
   redis:
@@ -26,9 +33,23 @@ services:
     networks:
       - app-network
 
+  postgres:
+    image: postgres:15-alpine
+    ports:
+      - "5432:5432"
+    environment:
+      - POSTGRES_USER=user
+      - POSTGRES_PASSWORD=password
+      - POSTGRES_DB=nodeapp
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - app-network
+
 networks:
   app-network:
     driver: bridge
 
 volumes:
   redis_data:
+  postgres_data:

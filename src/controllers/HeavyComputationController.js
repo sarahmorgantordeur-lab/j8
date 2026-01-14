@@ -58,7 +58,7 @@ class HeavyComputationController {
 
     // 5. Passez les données via l'option workerData.
     const worker = new Worker(workerPath, {
-      workerData: { iterations: 5000000000 },
+      workerData: { iterations: 5 },
     });
 
     // 6. Écoutez les événements du worker :

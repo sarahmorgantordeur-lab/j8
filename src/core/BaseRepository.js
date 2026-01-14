@@ -45,7 +45,7 @@ class BaseRepository {
     // Note: TypeORM update ne retourne pas l'objet modifié par défaut.
     await this.repo.update(id, data);
     // Pensez à retourner l'objet mis à jour (findById) après l'update.
-    return this.repo.findOneBy(id);
+    return this.repo.findOneBy({ id });
   }
 
   async delete(id) {

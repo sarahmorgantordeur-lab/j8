@@ -23,9 +23,13 @@ class SearchService {
             mappings: {
               properties: {
                 title: { type: "text" },
+                fields: {
+                    raw: { type: 'keyword' }
+                },
                 content: { type: "text" },
                 tags: { type: "keyword" },
                 created_at: { type: "date" },
+                suggest: { type: 'completion' }, // Autocomplétion
               },
             },
           },
@@ -58,6 +62,9 @@ class SearchService {
           content: post.content,
           tags: post.tags,
           created_at: post.created_at,
+          suggest: {
+            input: post.title.split(' ') // On nourrit le suggester avec les mots du titre
+          },
         },
       ]);
 

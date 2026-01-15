@@ -49,17 +49,16 @@ class SearchService {
       // Utilisez la méthode .flatMap() pour créer 2 entrées par post :
       // 1. L'instruction d'indexation : { index: { _index: this.index, _id: ... } }
       // 2. Le document lui-même (title, content, tags, created_at)
-      posts.flatMap(post => [
-        { 
-          index: { _index: this.index, 
-          _id: post.id.toString() } 
+      posts.flatMap((post) => [
+        {
+          index: { _index: this.index, _id: post.id.toString() },
         },
         {
           title: post.title,
           content: post.content,
           tags: post.tags,
           created_at: post.created_at,
-        }
+        },
       ]);
 
       const operations = posts.flatMap((post) => [
@@ -75,7 +74,7 @@ class SearchService {
       ]);
 
       // TODO 2: Envoyer le tout à Elastic
-      await client.bulk({ refresh: true, operations }); 
+      await client.bulk({ refresh: true, operations });
       // 'refresh: true' rend les documents visibles immédiatement pour la recherche (utile en dev) mais ne pas faire en réaliter (mettre false) sinon, si on a 1000 000 de requêtes ça crash le serveur
 
       const bulkResponse = await client.bulk({
@@ -91,6 +90,42 @@ class SearchService {
       }
     } catch (error) {
       console.error(" Erreur critique Bulk :", error.message);
+    }
+  }
+
+   // Effectue une recherche Full Text sur les articles.
+   // @param {string} query - Le terme recherché (ex: "node performance")
+   // @returns {Array} - Liste des résultats formatés
+
+  async searchPosts(query) {
+    try {
+      // TODO 1 : Construire la requête Elastic
+      // Utilisez client.search avec une clause 'multi_match'
+      // pour chercher le terme dans 'title' (boosté ?) et 'content'.
+      const result = await client.search({
+        index: this.index,
+        body: {
+          query: {
+            multi_match: {
+              query: query,
+              fields: ["title^3", "content"], // ^3 donne 3x plus d'importance au titre !
+              fuzziness: "AUTO", // Optionnel : gère les petites fautes de frappe
+            },
+          },
+        },
+      });
+      
+      // TODO 2 : Nettoyer la réponse
+      // Elastic renvoie beaucoup de métadonnées (_index, _version, etc.)
+      // On veut juste retourner un objet propre avec id, score, et les données.
+      return result.hits.hits.map((hit) => ({
+        id: hit._id,
+        score: hit._score, // Le score de pertinence (plus c'est haut, mieux c'est)
+        ...hit._source, // Les données originales (title, content, ...)
+      }));
+    } catch (error) {
+      console.error("❌ Erreur de recherche :", error.message);
+      return []; // On retourne un tableau vide en cas d'erreur pour ne pas casser le front
     }
   }
 }

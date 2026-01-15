@@ -6,6 +6,9 @@ const SearchService = require('../services/search.service');
 const searchService = new SearchService();
 const searchController = new SearchController(searchService);
 
+// Route publique de recherche
+router.get('/search', searchController.search);
+
 // Route utilitaire pour forcer l'indexation
 router.post('/index-all', searchController.indexAll);
 

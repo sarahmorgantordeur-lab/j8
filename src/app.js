@@ -11,8 +11,16 @@ const AppDataSource = require("./config/db");
 const authRoutes = require("./routes/auth.routes");
 const http = require("http");
 const { Server } = require("socket.io");
+// TODO 3: Importer la classe SearchService
+const SearchService = require('./services/search.service');
 // Initialisation du client Elastic
 require('./config/elastic');
+
+// TODO 4: Instancier le service et appeler la méthode initIndex()
+const searchService = new SearchService();
+searchService.initIndex().catch(err => {
+  console.error('[ELASTIC] Erreur lors de l\'initialisation:', err.message);
+});
 
 const PORT = process.env.PORT || 3000;
 

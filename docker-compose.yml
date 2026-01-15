@@ -9,15 +9,9 @@ services:
     environment:
       - REDIS_HOST=redis
       - REDIS_PORT=6379
-      - DB_TYPE=postgres
-      - DB_HOST=postgres
-      - DB_PORT=5432
-      - DB_USERNAME=user
-      - DB_PASSWORD=password
-      - DB_DATABASE=nodeapp
+      - ELASTIC_NODE=http://elasticsearch:9200
     depends_on:
       - redis
-      - postgres
     networks:
       - app-network
     volumes:
@@ -33,18 +27,6 @@ services:
     networks:
       - app-network
 
-  postgres:
-    image: postgres:15-alpine
-    ports:
-      - "5432:5432"
-    environment:
-      - POSTGRES_USER=user
-      - POSTGRES_PASSWORD=password
-      - POSTGRES_DB=nodeapp
-    volumes:
-      - postgres_data:/var/lib/postgresql/data
-    networks:
-      - app-network
 
   elasticsearch:
     image: docker.elastic.co/elasticsearch/elasticsearch:8.11.1
@@ -76,6 +58,5 @@ networks:
 
 volumes:
   redis_data:
-  postgres_data:
   elastic_data:
   kibana_data:

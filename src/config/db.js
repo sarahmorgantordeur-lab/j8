@@ -2,6 +2,7 @@ const { DataSource } = require('typeorm');
 const User = require('../entities/User');
 const Message = require('../entities/Message');
 const Product = require('../entities/Product');
+const Post = require('../entities/Post');
 
 // Configuration dynamique selon l'environnement
 const dbConfig = process.env.DB_TYPE === 'postgres'
@@ -14,14 +15,14 @@ const dbConfig = process.env.DB_TYPE === 'postgres'
       database: process.env.DB_DATABASE || 'nodeapp',
       synchronize: true, // DEV ONLY
       logging: false,
-      entities: [User, Message, Product],
+      entities: [User, Message, Product, Post],
     }
   : {
       type: 'better-sqlite3',
       database: 'database.sqlite', // Fichier local
       synchronize: true, // DEV ONLY
       logging: false,
-      entities: [User, Message, Product],
+      entities: [User, Message, Product, Post],
     };
 
 const AppDataSource = new DataSource(dbConfig);

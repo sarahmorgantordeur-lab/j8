@@ -14,7 +14,7 @@ const { Server } = require("socket.io");
 // TODO 3: Importer la classe SearchService
 const SearchService = require('./services/search.service');
 // Initialisation du client Elastic
-require('./config/elastic');
+// require('./config/elastic');
 
 // TODO 4: Instancier le service et appeler la méthode initIndex()
 const searchService = new SearchService();
@@ -86,6 +86,7 @@ if (false && cluster.isPrimary) {
       require("./entities/User"),
       require("./entities/Message"),
       require("./entities/Product"),
+      require("./entities/Post"),
     ],
   });
   AppDataSource.initialize()
@@ -151,6 +152,9 @@ if (false && cluster.isPrimary) {
   });
 
   app.use("/", authRoutes);
+
+  const searchRoutes = require("./routes/search.routes");
+  app.use("/search", searchRoutes);
 
   const statsRoutes = require("./routes/stats.routes");
   app.use("/", statsRoutes);

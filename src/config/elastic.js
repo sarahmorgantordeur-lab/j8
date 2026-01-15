@@ -2,7 +2,7 @@ const { Client } = require("@elastic/elasticsearch");
 // Initialisation du client
 // Utilise la variable d'environnement ou localhost par défaut
 const client = new Client({
-  node: process.env.ELASTIC_NODE || "http://localhost:9200",
+  node: process.env.ELASTIC_NODE || "http://elasticsearch:9200",
 });
 // Vérification de la connexion au démarrage
 // La méthode .info() permet de tester la connectivité sans bloquer l'application

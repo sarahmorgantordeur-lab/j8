@@ -1,12 +1,23 @@
+// Consignes :
+// ● Modifiez le constructeur pour accepter un repository dans les options.
+// ● Utilisez ce repository injecté au lieu d'importer la DB globale.
+
 const { Writable } = require('stream');
-const AppDataSource = require('../config/db');
 
 class ProductBatchInsertWritable extends Writable {
     constructor(options = {}) {
         super({ ...options, objectMode: true });
         this.batchSize = options.batchSize || 1000;
         this.batch = [];
-        this.productRepository = AppDataSource.getRepository("Product");
+
+        // TODO: Récupérer le repository depuis options.repository
+        this.productRepository = options.repository;
+
+        if (!this.productRepository) {
+          throw new Error(
+            "ProductBatchInsertWritable nécessite un repository !"
+          );
+        }
     }
 
     async _write(chunk, encoding, callback) {

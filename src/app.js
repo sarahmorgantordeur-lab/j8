@@ -154,9 +154,12 @@ if (false && cluster.isPrimary) {
   const heavyRoutes = require("./routes/heavy.routes");
   app.use("/", heavyRoutes);
 
-  httpServer.listen(PORT, () => {
-    console.log(`Worker ${process.pid} started on port ${PORT}`);
-  });
+  // Ne pas démarrer le serveur si on est en mode test
+  if (process.env.NODE_ENV !== 'test') {
+    httpServer.listen(PORT, () => {
+      console.log(`Worker ${process.pid} started on port ${PORT}`);
+    });
+  }
 
   module.exports = app;
 }

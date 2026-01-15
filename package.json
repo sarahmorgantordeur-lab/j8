@@ -6,9 +6,12 @@
   "scripts": {
     "start": "node src/app.js",
     "dev": "nodemon src/app.js",
-    "benchmark": "node scripts/benchmark.js"
+    "benchmark": "node scripts/benchmark.js",
+    "test": "jest",
+    "test:cov": "jest --coverage"
   },
   "dependencies": {
+    "bcrypt": "^6.0.0",
     "bcryptjs": "^3.0.3",
     "better-sqlite3": "^12.6.0",
     "connect-redis": "^7.1.0",
@@ -27,10 +30,12 @@
     "reflect-metadata": "^0.1.14",
     "socket.io": "^4.8.3",
     "socket.io-client": "^4.8.3",
+    "supertest": "^7.2.2",
     "typeorm": "^0.3.28"
   },
   "devDependencies": {
     "autocannon": "^7.15.0",
+    "jest": "^30.2.0",
     "nodemon": "^3.0.1"
   }
 }

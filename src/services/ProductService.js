@@ -7,8 +7,6 @@
 
 
 const AppDataSource = require('../config/db');
-const ProductValidationTransform = require('../streams/ProductValidationTransform');
-const ProductBatchInsertWritable = require('../streams/ProductBatchInsertWritable');
 const BaseService = require('../core/BaseService');
 const { pipeline } = require('stream/promises');
 const csv = require('csv-parser');

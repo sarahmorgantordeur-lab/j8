@@ -11,6 +11,8 @@ const AppDataSource = require("./config/db");
 const authRoutes = require("./routes/auth.routes");
 const http = require("http");
 const { Server } = require("socket.io");
+// Initialisation du client Elastic
+require('./config/elastic');
 
 const PORT = process.env.PORT || 3000;
 
